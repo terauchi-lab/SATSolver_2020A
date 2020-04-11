@@ -19,7 +19,9 @@ class Solve(private val file: File) {
         println(dpll(cnf))
     }
 
-    private fun dpll(cnf: CNF): Boolean {
+    private fun dpll(c: CNF): Boolean {
+        val cnf = c.oneLiteral()
+
         if (cnf.size == 0) return true
         if (cnf.check()) {
             cnf.printOut()
