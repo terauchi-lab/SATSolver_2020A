@@ -19,7 +19,7 @@ class Solve(private val file: File) {
         println(dpll(cnf))
     }
 
-    fun dpll(cnf: CNF): Boolean {
+    private fun dpll(cnf: CNF): Boolean {
         if (cnf.size == 0) return true
         if (cnf.check()) {
             cnf.printOut()
