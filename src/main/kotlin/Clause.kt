@@ -1,7 +1,7 @@
 class Clause(private val base: String) {
-    val literals = mutableListOf<Int>()
+    val element = mutableListOf<Int>()
 
     init {
-        literals.addAll(base.split(' ').map { it.toInt() }.dropLast(1))
+        element.addAll(base.split(' ').map { it.toInt() }.dropLast(1))
     }
 }

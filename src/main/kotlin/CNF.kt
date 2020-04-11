@@ -1,9 +1,3 @@
-class CNF(private val base: List<String>) {
-    val clauses = mutableListOf<Clause>()
+class CNF(val size: Int, val clauses:List<Clause>, val literal:List<Pair<Int,Boolean>>) {
 
-    init {
-        base.forEach {
-            clauses.add(Clause(it))
-        }
-    }
 }
