@@ -1,6 +1,6 @@
 import kotlin.math.abs
 
-class CNF(val size: Int, val clauses: List<Clause>, private val literal: List<Pair<Int, Boolean>>) {
+class CNF(val size: Int, val clauses: List<Clause>, val literal: MutableList<Triple<Int, Boolean, Boolean>>) {
     fun check(): Boolean {
         val c = mutableListOf<Boolean>()
         clauses.forEach { o ->
@@ -15,5 +15,11 @@ class CNF(val size: Int, val clauses: List<Clause>, private val literal: List<Pa
         }
         if (c.contains(false)) return false
         return true
+    }
+
+    fun printOut() {
+        literal.sortedBy { it.first }.forEach {
+            println("${it.first}:${it.second}")
+        }
     }
 }
