@@ -15,13 +15,13 @@ class Solve(private val file: File) {
         }
 
         val cnf = CNF(size, clause, literal)
-        cnf.clauses.forEach {
-            println(it.element)
-        }
+
+        dpll(cnf)
     }
 
     fun dpll(cnf: CNF): Boolean {
         if (cnf.size == 0) return true
+        println(cnf.check())
         return false
     }
 }
