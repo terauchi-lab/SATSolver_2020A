@@ -20,7 +20,7 @@ class Solve(private val file: File) {
     }
 
     private fun dpll(c: CNF): Boolean {
-        val cnf = c.oneLiteral()
+        val cnf = c.oneLiteral().pureLiteral()
 
         if (cnf.size == 0) return true
         if (cnf.check()) {

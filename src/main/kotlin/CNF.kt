@@ -37,4 +37,24 @@ class CNF(val size: Int, val clauses: MutableList<Clause>, val literal: MutableL
 
         return this
     }
+
+    fun pureLiteral(): CNF {
+        val l = mutableListOf<Triple<Int, Boolean, Boolean>>()
+        repeat(size) {
+            l.add(Triple(it + 1, second = false, third = false))
+        }
+        clauses.forEach { c ->
+            c.element.forEach { e ->
+                if (e > 0) l[e - 1] = Triple(l[e - 1].first, true, l[e - 1].third)
+                else l[abs(e) - 1] = Triple(l[abs(e) - 1].first, l[abs(e) - 1].second, true)
+            }
+        }
+        l.filter { !it.second || !it.third }.forEach { t ->
+            clauses.removeAll { it.element.contains(t.first) || it.element.contains(-t.first) }
+            if (t.second) literal[t.first - 1] = Triple(t.first, second = true, third = true)
+            else literal[t.first - 1] = Triple(t.first, second = false, third = true)
+        }
+
+        return this
+    }
 }
