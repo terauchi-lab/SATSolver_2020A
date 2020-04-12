@@ -49,7 +49,7 @@ class CNF(val size: Int, val clauses: MutableList<Clause>, val literal: MutableL
                 else l[abs(e) - 1] = Triple(l[abs(e) - 1].first, l[abs(e) - 1].second, true)
             }
         }
-        l.filter { !it.second || !it.third }.forEach { t ->
+        l.filter { it.second xor  it.third }.forEach { t ->
             clauses.removeAll { it.element.contains(t.first) || it.element.contains(-t.first) }
             if (t.second) literal[t.first - 1] = Triple(t.first, second = true, third = true)
             else literal[t.first - 1] = Triple(t.first, second = false, third = true)
