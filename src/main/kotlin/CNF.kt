@@ -2,7 +2,6 @@ import kotlin.math.abs
 
 class CNF(val size: Int, val clauses: MutableList<Clause>, val literal: MutableList<Triple<Int, Boolean, Boolean>>) {
     fun check(): Boolean {
-        val c = mutableListOf<Boolean>()
         clauses.forEach { o ->
             val v = mutableListOf<Boolean>()
             o.element.forEach { i ->
@@ -11,9 +10,8 @@ class CNF(val size: Int, val clauses: MutableList<Clause>, val literal: MutableL
                     else !literal[abs(i) - 1].second
                 )
             }
-            c.add(v.contains(true))
+            if (!v.contains(true)) return false
         }
-        if (c.contains(false)) return false
         return true
     }
 
@@ -21,6 +19,7 @@ class CNF(val size: Int, val clauses: MutableList<Clause>, val literal: MutableL
         literal.sortedBy { it.first }.forEach {
             println("${it.first}:${it.second}")
         }
+        println("---------")
     }
 
     fun oneLiteral(): CNF {
@@ -42,7 +41,7 @@ class CNF(val size: Int, val clauses: MutableList<Clause>, val literal: MutableL
     fun pureLiteral(): CNF {
         val cnf = this
         val l = mutableListOf<Triple<Int, Boolean, Boolean>>()
-        repeat(size) {
+        repeat(cnf.size) {
             l.add(Triple(it + 1, second = false, third = false))
         }
         cnf.clauses.forEach { c ->

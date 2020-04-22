@@ -32,8 +32,8 @@ class Solve(private val file: File) {
         }
         val v = cnf.literal.find { !it.third }?.first
         if (v != null) {
-            val onTrue = cnf.literal
-            val onFalse = cnf.literal
+            val onTrue = cnf.literal.toMutableList()
+            val onFalse = cnf.literal.toMutableList()
             onTrue[v - 1] = Triple(v, second = true, third = true)
             onFalse[v - 1] = Triple(v, second = false, third = true)
             if (dpll(CNF(cnf.size, cnf.clauses, onTrue))) return true
