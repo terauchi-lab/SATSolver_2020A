@@ -1,4 +1,6 @@
 import java.io.File
+import kotlin.system.measureNanoTime
+import kotlin.system.measureTimeMillis
 
 class Solve(private val file: File) {
     fun run() {
@@ -16,7 +18,11 @@ class Solve(private val file: File) {
 
         val cnf = CNF(size, clause, literal)
 
-        println(dpll(cnf))
+        println(
+            measureNanoTime {
+                println(dpll(cnf))
+            }
+        )
     }
 
     private fun dpll(c: CNF): Boolean {
