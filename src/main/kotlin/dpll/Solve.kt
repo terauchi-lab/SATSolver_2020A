@@ -1,6 +1,7 @@
+package dpll
+
 import java.io.File
 import kotlin.system.measureNanoTime
-import kotlin.system.measureTimeMillis
 
 class Solve(private val file: File) {
     fun run() {

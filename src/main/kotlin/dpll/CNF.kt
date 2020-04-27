@@ -1,3 +1,5 @@
+package dpll
+
 import kotlin.math.abs
 
 class CNF(val size: Int, val clauses: MutableList<Clause>, val literal: MutableList<Triple<Int, Boolean, Boolean>>) {

@@ -1,3 +1,5 @@
+package dpll
+
 class Clause(private val base: String) {
     val element = mutableListOf<Int>()
 
