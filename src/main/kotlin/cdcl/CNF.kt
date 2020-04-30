@@ -2,13 +2,12 @@ package cdcl
 
 import kotlin.math.abs
 
-class CNF(val size: Int, val clauses: MutableList<Clause>, val literal: MutableList<Pair<Int, Boolean?>>) {
-    val factor = mutableListOf<Int>()
+class CNF(val size: Int, val clauses: MutableList<Clause>, val literal: MutableList<Literal>) {
 
     fun copy(
         size: Int = this.size,
         clauses: MutableList<Clause> = this.clauses,
-        literal: MutableList<Pair<Int, Boolean?>> = this.literal
+        literal: MutableList<Literal> = this.literal
     ) = CNF(size, clauses, literal)
 
     fun check(): Boolean {
@@ -16,18 +15,18 @@ class CNF(val size: Int, val clauses: MutableList<Clause>, val literal: MutableL
             val v = mutableListOf<Boolean?>()
             o.element.forEach { i ->
                 v.add(
-                    if (i > 0) literal[i - 1].second
-                    else literal[abs(i) - 1].second?.not()
+                    if (i > 0) literal[i - 1].bool
+                    else literal[abs(i) - 1].bool?.not()
                 )
             }
-            if (!v.contains(true)) return false
+            if (v.contains(null) || !v.contains(true)) return false
         }
         return true
     }
 
     fun printOut() {
-        literal.sortedBy { it.first }.forEach {
-            println("${it.first}:${it.second}")
+        literal.sortedBy { it.number }.forEach {
+            println("${it.number}:${it.bool}")
         }
         println("---------")
     }
@@ -40,8 +39,8 @@ class CNF(val size: Int, val clauses: MutableList<Clause>, val literal: MutableL
             cnf.clauses.filter { it.now.contains(-c) }.forEach {
                 it.now.remove(-c)
             }
-            if (c > 0) cnf.literal[c - 1] = Pair(c, true)
-            if (c < 0) cnf.literal[abs(c) - 1] = Pair(-c, false)
+            if (c > 0) cnf.literal[c - 1].bool = true
+            if (c < 0) cnf.literal[abs(c) - 1].bool = false
             return cnf.oneLiteral()
         }
 
@@ -63,8 +62,7 @@ class CNF(val size: Int, val clauses: MutableList<Clause>, val literal: MutableL
         l.filter { it.second xor it.third }.apply {
             forEach { t ->
                 cnf.clauses.removeAll { it.now.contains(t.first) || it.now.contains(-t.first) }
-                if (t.second) cnf.literal[t.first - 1] = Pair(t.first, true)
-                else cnf.literal[t.first - 1] = Pair(t.first, false)
+                cnf.literal[t.first - 1].bool = t.second
             }
             if (this.isNotEmpty()) return cnf.pureLiteral()
         }

@@ -12,23 +12,17 @@ class Solve(private val file: File) {
         texts.drop(1).forEach {
             clause.add(Clause(it))
         }
-        val literal = mutableListOf<Pair<Int, Boolean?>>()
+        val literal = mutableListOf<Literal>()
         (1..size).forEach {
-            literal.add(Pair(it + 1, null))
+            literal.add(Literal(it + 1, null, mutableListOf()))
         }
 
         val cnf = CNF(size, clause, literal)
 
         println(
             measureNanoTime {
-                println(cdcl(cnf))
+                CDCL(cnf).run()
             }
         )
-    }
-
-    fun cdcl(c: CNF): Boolean {
-        val cnf = c.oneLiteral().pureLiteral()
-
-        return false
     }
 }
