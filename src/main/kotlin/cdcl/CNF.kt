@@ -51,7 +51,7 @@ class CNF(val size: Int, val clauses: MutableList<Clause>, val literal: MutableL
             return cnf.oneLiteral()
         }
 
-        return cnf
+        return this
     }
 
     fun pureLiteral(): CNF {
@@ -61,9 +61,9 @@ class CNF(val size: Int, val clauses: MutableList<Clause>, val literal: MutableL
             l.add(Triple(it + 1, second = false, third = false))
         }
         cnf.clauses.forEach { c ->
-            c.now.forEach { e ->
-                if (e > 0) l[e - 1] = Triple(l[e - 1].first, true, l[e - 1].third)
-                else l[abs(e) - 1] = Triple(l[abs(e) - 1].first, l[abs(e) - 1].second, true)
+            c.now.forEach { n ->
+                if (n > 0) l[n - 1] = Triple(l[n - 1].first, true, l[n - 1].third)
+                else l[abs(n) - 1] = Triple(l[abs(n) - 1].first, l[abs(n) - 1].second, true)
             }
         }
         l.filter { it.second xor it.third }.apply {
@@ -73,11 +73,14 @@ class CNF(val size: Int, val clauses: MutableList<Clause>, val literal: MutableL
             }
             if (this.isNotEmpty()) return cnf.pureLiteral()
         }
+        l.filter { !it.second && !it.third && literal[it.first - 1].bool == null }.forEach {
+            cnf.literal[it.first - 1].bool = true
+        }
 
         return cnf
     }
 
-    fun literalTimes(): List<Int> {
+    fun literalTimes(): MutableList<Int> {
         val list = mutableListOf<Int>()
         val map = mutableMapOf<Int, Int>()
         clauses.forEach { c ->
@@ -89,5 +92,18 @@ class CNF(val size: Int, val clauses: MutableList<Clause>, val literal: MutableL
             list.add(it.first)
         }
         return list
+    }
+
+    fun setLiteral(x: Int) {
+        if (x > 0) literal[x - 1].bool = true
+        else literal[abs(x) - 1].bool = false
+        literal[abs(x) - 1].factor.add(0)
+
+        clauses.filter { it.now.contains(x) }.forEach {
+            it.now.removeAll { true }
+        }
+        clauses.filter { it.now.contains(-x) }.forEach {
+            it.now.remove(-x)
+        }
     }
 }
