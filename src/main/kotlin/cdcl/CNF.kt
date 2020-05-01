@@ -3,11 +3,12 @@ package cdcl
 import kotlin.math.abs
 
 class CNF(val size: Int, val clauses: MutableList<Clause>, val literal: MutableList<Literal>) {
+    var choose = null
 
     fun copy(
         size: Int = this.size,
-        clauses: MutableList<Clause> = this.clauses,
-        literal: MutableList<Literal> = this.literal
+        clauses: MutableList<Clause> = this.clauses.toMutableList(),
+        literal: MutableList<Literal> = this.literal.toMutableList()
     ) = CNF(size, clauses, literal)
 
     fun check(): Boolean {
@@ -33,14 +34,20 @@ class CNF(val size: Int, val clauses: MutableList<Clause>, val literal: MutableL
 
     fun oneLiteral(): CNF {
         val cnf = this.copy()
-        val c = cnf.clauses.find { it.now.size == 1 }?.now?.first()
-        if (c != null) {
-            cnf.clauses.removeAll { it.now.contains(c) }
-            cnf.clauses.filter { it.now.contains(-c) }.forEach {
-                it.now.remove(-c)
+        val c = cnf.clauses.find { it.now.size == 1 }
+        val v = c?.now?.first()
+        if (v != null) {
+            val f = c.element.toMutableList()
+            f.removeAll { c.now.contains(it) }
+            cnf.clauses.filter { it.now.contains(v) }.forEach {
+                it.now.removeAll { true }
             }
-            if (c > 0) cnf.literal[c - 1].bool = true
-            if (c < 0) cnf.literal[abs(c) - 1].bool = false
+            cnf.clauses.filter { it.now.contains(-v) }.forEach {
+                it.now.remove(-v)
+            }
+            if (v > 0) cnf.literal[v - 1].bool = true
+            if (v < 0) cnf.literal[abs(v) - 1].bool = false
+            cnf.literal[abs(v) - 1].factor.addAll(f)
             return cnf.oneLiteral()
         }
 
@@ -68,5 +75,19 @@ class CNF(val size: Int, val clauses: MutableList<Clause>, val literal: MutableL
         }
 
         return cnf
+    }
+
+    fun literalTimes(): List<Int> {
+        val list = mutableListOf<Int>()
+        val map = mutableMapOf<Int, Int>()
+        clauses.forEach { c ->
+            c.now.forEach { i ->
+                map[i] = map[i]?.plus(1) ?: 0
+            }
+        }
+        map.toList().sortedByDescending { it.second }.forEach {
+            list.add(it.first)
+        }
+        return list
     }
 }
