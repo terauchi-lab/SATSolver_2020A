@@ -14,7 +14,7 @@ class Solve(private val file: File) {
         }
         val literal = mutableListOf<Literal>()
         (1..size).forEach {
-            literal.add(Literal(it, null, mutableListOf()))
+            literal.add(Literal(it, null, null, mutableListOf()))
         }
 
         val cnf = CNF(size, clause, literal)

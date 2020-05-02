@@ -1,15 +1,17 @@
 package cdcl
 
 class CDCL(private val cnf: CNF) {
+    var level = 0
+
     fun run() {
-        val cnf = cnf.oneLiteral().pureLiteral(true)
+        val cnf = cnf.oneLiteral(level).pureLiteral(true)
 
         cdcl(cnf)
     }
 
     private fun cdcl(cnf: CNF) {
         val lite = chooseLiteral(cnf)
-        val c = if (lite != null) cnf.setLiteral(lite).pureLiteral() else cnf
+        val c = if (lite != null) cnf.setLiteral(lite, level).oneLiteral(level).pureLiteral() else cnf
         //else cnf.literal.filter { it.bool == null }.forEach { it.bool = true }
         if (c.check()) {
             c.printOut()
@@ -23,6 +25,7 @@ class CDCL(private val cnf: CNF) {
     }
 
     private fun chooseLiteral(cnf: CNF): Int? {
+        level++
         val last = cnf.lastOne()
         if (last != null) return last
         val list = cnf.literalTimes()
