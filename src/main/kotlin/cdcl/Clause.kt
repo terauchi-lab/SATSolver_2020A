@@ -2,7 +2,7 @@ package cdcl
 
 class Clause(private val base: String) {
     val element = mutableListOf<Int>()
-    val now: MutableList<Int> by lazy { element.toMutableList() }
+    val now: MutableSet<Int> by lazy { element.toMutableSet() }
 
     init {
         element.addAll(base.split(" ").map { it.toInt() }.dropLast(1))

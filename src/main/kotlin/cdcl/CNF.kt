@@ -24,10 +24,7 @@ class CNF(val size: Int, val clauses: MutableList<Clause>, val literal: MutableL
                 )
             }
             if (v.contains(null)) return false
-            if (!v.contains(true)) {
-                //choose = abs(o.element.maxBy { literal[abs(it) - 1].factor.size }!!)
-                return false
-            }
+            if (!v.contains(true)) return false
         }
         return true
     }
@@ -56,8 +53,10 @@ class CNF(val size: Int, val clauses: MutableList<Clause>, val literal: MutableL
         if (v.isNotEmpty()) {
             v.forEach { i ->
                 c.filter { it.now.contains(i) }.forEach {
-                    val list = it.element.toMutableList()
+                    val list = it.element.toMutableList().filter { i -> !it.now.contains(i) }.toMutableList()
                     list.remove(i)
+                    if (list.contains(20))
+                        println(i)
                     literal[abs(i) - 1].factor.addAll(list.map { i -> abs(i) })
                 }
                 if (cnf.literal[abs(i) - 1].bool != null) {
@@ -167,7 +166,7 @@ class CNF(val size: Int, val clauses: MutableList<Clause>, val literal: MutableL
 
         if (list.isEmpty()) return Pair(this, -2)
         cnf.clauses.add(0, Clause(list.joinToString(" ").plus(" 0")))
-        literal.filter { it.level == changeLevel }.run {
+        literal.filter { it.level == changeLevel || it.bool == null }.run {
             val sameLevel = mutableListOf<Int>()
             forEach {
                 sameLevel.add(it.number)
@@ -184,6 +183,7 @@ class CNF(val size: Int, val clauses: MutableList<Clause>, val literal: MutableL
             cnf.literal[it - 1].factor.removeAll { true }
             cnf.literal[it - 1].level = null
         }
+        printOut()
         return Pair(cnf, level)
     }
 
