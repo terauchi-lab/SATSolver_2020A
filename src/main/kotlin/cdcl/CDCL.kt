@@ -30,7 +30,6 @@ class CDCL(private val cnf: CNF) {
         level++
         val last = cnf.lastOne()
         if (last != null) return last
-        val list = cnf.literalTimes()
-        return if (list.isNotEmpty()) list.first() else null
+        return cnf.literalTimes()
     }
 }
