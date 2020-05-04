@@ -1,6 +1,7 @@
 package cdcl
 
-@JvmField var level=0
+@JvmField
+var level = 0
 
 class CDCL(private val cnf: CNF) {
     fun run() {
@@ -19,9 +20,7 @@ class CDCL(private val cnf: CNF) {
         } else if (c.literal.any { it.bool == null }) {
             cdcl(c.copy())
         } else {
-            val p = c.backJump()
-            if (p.second > 0) level = p.second
-            cdcl(p.first.oneLiteral().pureLiteral())
+            cdcl(c.backJump().oneLiteral().pureLiteral())
         }
         println("no")
     }
