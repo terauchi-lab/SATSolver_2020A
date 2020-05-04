@@ -3,8 +3,8 @@ package cdcl
 import kotlin.collections.ArrayDeque
 import kotlin.math.abs
 
-class CNF(val size: Int, val clauses: MutableList<Clause>, val literal: MutableList<Literal>) {
-    var choose: Int? = null
+class CNF(private val size: Int, private val clauses: MutableList<Clause>, val literal: MutableList<Literal>) {
+    private var choose = mutableListOf<Int>()
 
     fun copy(
         size: Int = this.size,
@@ -24,7 +24,13 @@ class CNF(val size: Int, val clauses: MutableList<Clause>, val literal: MutableL
                 )
             }
             if (v.contains(null)) return false
-            if (!v.contains(true)) return false
+            if (!v.contains(true)) {
+                choose = (o.element.run {
+                    val l = maxBy { literal[abs(it) - 1].level ?: -1 }
+                    filter { literal[abs(it) - 1].level == l }.map { abs(it) }
+                }).toMutableList()
+                return false
+            }
         }
         return true
     }
@@ -58,7 +64,7 @@ class CNF(val size: Int, val clauses: MutableList<Clause>, val literal: MutableL
                     literal[abs(i) - 1].factor.addAll(list.map { i -> abs(i) })
                 }
                 if (cnf.literal[abs(i) - 1].bool != null) {
-                    cnf.choose = abs(i)
+                    cnf.choose = mutableListOf(abs(i))
                     return cnf.backJump()
                 }
 
@@ -128,7 +134,7 @@ class CNF(val size: Int, val clauses: MutableList<Clause>, val literal: MutableL
         else cnf.literal[abs(x) - 1].bool = false
         cnf.literal[abs(x) - 1].factor.add(0)
         cnf.literal[abs(x) - 1].level = level
-        cnf.choose = abs(x)
+        cnf.choose = mutableListOf(abs(x))
 
         cnf.clauses.filter { it.now.contains(x) }.forEach {
             it.now.removeAll { true }
@@ -142,11 +148,16 @@ class CNF(val size: Int, val clauses: MutableList<Clause>, val literal: MutableL
 
     fun backJump(): CNF {
         printOut()
-        if (literal[choose!! - 1].factor.isEmpty()) choose = literal.maxBy { it.factor.size }?.number
-        if (choose == null) return this
+        if (choose.isEmpty()) choose = mutableListOf(literal.maxBy { it.factor.size }?.number!!)
         val cnf = this.copy()
-        val changeLevel = literal[choose!! - 1].level
-        val fact = literal[choose!! - 1].factor.filter { it != 0 }.toMutableList()
+        val changeLevel = literal[choose.first() - 1].level
+        val fact = choose.run {
+            val l = mutableListOf<Int>()
+            forEach {
+                l.addAll(literal[it - 1].factor.filter { i -> i != 0 })
+            }
+            l
+        }
         val root = searchRoot(fact)
         val list = mutableListOf<Int>()
         val set = mutableSetOf<Int>()
