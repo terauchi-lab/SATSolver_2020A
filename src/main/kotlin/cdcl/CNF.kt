@@ -3,12 +3,12 @@ package cdcl
 import kotlin.collections.ArrayDeque
 import kotlin.math.abs
 
-class CNF(private val size: Int, private val clauses: MutableList<Clause>, val literal: MutableList<Literal>) {
+class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val literal: MutableList<Literal>) {
     private var choose = mutableListOf<Int>()
 
     fun copy(
         size: Int = this.size,
-        clauses: MutableList<Clause> = this.clauses.toMutableList(),
+        clauses: MutableSet<Clause> = this.clauses.toMutableSet(),
         literal: MutableList<Literal> = this.literal.toMutableList()
     ) = CNF(size, clauses, literal).also {
         it.choose = this.choose
@@ -25,10 +25,10 @@ class CNF(private val size: Int, private val clauses: MutableList<Clause>, val l
             }
             if (v.contains(null)) return false
             if (!v.contains(true)) {
-                choose = (o.element.run {
+                choose = o.element.run {
                     val l = maxBy { literal[abs(it) - 1].level ?: -1 }
-                    filter { literal[abs(it) - 1].level == l }.map { abs(it) }
-                }).toMutableList()
+                    filter { literal[abs(it) - 1].level == literal[abs(l!!) - 1].level }.map { abs(it) }
+                }.toMutableList()
                 return false
             }
         }
@@ -63,9 +63,9 @@ class CNF(private val size: Int, private val clauses: MutableList<Clause>, val l
                     list.remove(i)
                     literal[abs(i) - 1].factor.add(list.map { i -> abs(i) }.sorted())
                 }
-                if (cnf.literal[abs(i) - 1].bool != null) {
+                if (cnf.literal[abs(i) - 1].bool == i <= 0) {
                     cnf.choose = mutableListOf(abs(i))
-                    return cnf.backJump()
+                    return cnf.backJump().oneLiteral()
                 }
 
                 cnf.clauses.filter { it.now.contains(i) }.forEach {
@@ -121,14 +121,14 @@ class CNF(private val size: Int, private val clauses: MutableList<Clause>, val l
                     map[i] = map[i]?.plus(1) ?: 0
             }
         }
-        return map.maxBy { it.value }?.key?.let { -it }
+        return map.maxBy { it.value }?.key
     }
 
     fun lastOne(): Int? {
-        return clauses.find { it.now.size == 2 }?.now?.first()?.let { -it }
+        return clauses.find { it.now.size == 2 }?.now?.first()
     }
 
-    fun setLiteral(x: Int, level: Int): CNF {
+    fun setLiteral(x: Int): CNF {
         val cnf = this.copy()
         if (x > 0) cnf.literal[x - 1].bool = true
         else cnf.literal[abs(x) - 1].bool = false
@@ -148,9 +148,8 @@ class CNF(private val size: Int, private val clauses: MutableList<Clause>, val l
 
     fun backJump(): CNF {
         printOut()
-        if (choose.isEmpty()) choose = mutableListOf(literal.maxBy { it.factor.size }?.number!!)
+        if (choose.isEmpty()) choose = mutableListOf(literal.maxBy { it.level ?: 0 }?.number!!)
         val cnf = this.copy()
-        val changeLevel = literal[choose.first() - 1].level
         val fact = choose.run {
             val l = mutableListOf<List<Int>>()
             forEach {
@@ -159,11 +158,27 @@ class CNF(private val size: Int, private val clauses: MutableList<Clause>, val l
             l
         }
         val root = searchRoot(fact)
+        var changeLevel =
+            if (root != 0) literal[root - 1].level
+            else fact.run {
+                val l = mutableListOf<Int>()
+                forEach {
+                    l.addAll(it)
+                }
+                l.minBy { literal[it - 1].level!! }?.let { literal[it - 1].level }
+            }
         val list = mutableListOf<Int>()
         val set = mutableSetOf<Int>()
         if (fact.size != fact.toSet().size) {
             fact.forEach {
                 if (fact.count { i -> i == it } > 1) set.addAll(it)
+            }
+            changeLevel = set.run {
+                val l = mutableListOf<Int>()
+                forEach {
+                    l.add(literal[it - 1].level!!)
+                }
+                l.min()
             }
         } else {
             literal.filter { it.factor.any { e -> e.contains(root) } }.forEach {
@@ -180,8 +195,8 @@ class CNF(private val size: Int, private val clauses: MutableList<Clause>, val l
         }
 
         if (list.isEmpty()) return this
-        cnf.clauses.add(0, Clause(list.joinToString(" ").plus(" 0")))
-        literal.filter { it.level == changeLevel || it.bool == null }.run {
+        cnf.clauses.add(Clause(list.joinToString(" ").plus(" 0")))
+        literal.filter { it.level ?: 0 >= changeLevel!! || it.bool == null }.run {
             val sameLevel = mutableListOf<Int>()
             forEach {
                 sameLevel.add(it.number)
@@ -206,6 +221,7 @@ class CNF(private val size: Int, private val clauses: MutableList<Clause>, val l
         }
 
         cnf.printOut()
+        level = changeLevel!! - 1
         return cnf
     }
 
@@ -218,7 +234,7 @@ class CNF(private val size: Int, private val clauses: MutableList<Clause>, val l
         }
         while (queue.isNotEmpty()) {
             val x = queue.removeFirst()
-            if (all.contains(x) && !literal[x - 1].factor.any { it.contains(0) }) return x
+            if (all.contains(x)) return x
             all.add(x)
             literal[x - 1].factor.filter { !it.contains(0) }.forEach {
                 queue.addAll(it)

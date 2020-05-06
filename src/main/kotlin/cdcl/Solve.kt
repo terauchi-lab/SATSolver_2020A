@@ -8,7 +8,7 @@ class Solve(private val file: File) {
         val texts = file.readLines()
 
         val size = texts[0].split(' ')[2].toInt()
-        val clause = mutableListOf<Clause>()
+        val clause = mutableSetOf<Clause>()
         texts.drop(1).forEach {
             clause.add(Clause(it))
         }

@@ -12,10 +12,11 @@ class CDCL(private val cnf: CNF) {
 
     private fun cdcl(cnf: CNF) {
         val lite = chooseLiteral(cnf)
-        val c = if (lite != null) cnf.setLiteral(lite, level).oneLiteral().pureLiteral() else cnf
+        val c = if (lite != null) cnf.setLiteral(lite).oneLiteral().pureLiteral() else cnf
         when {
             c.check() -> {
                 c.printOut()
+                println("SAT")
                 return
             }
             c.literal.any { it.bool == null } -> {
@@ -25,13 +26,12 @@ class CDCL(private val cnf: CNF) {
                 cdcl(c.backJump().oneLiteral().pureLiteral())
             }
         }
-        println("no")
     }
 
     private fun chooseLiteral(cnf: CNF): Int? {
         level++
-        val last = cnf.lastOne()
-        if (last != null) return last
+//        val last = cnf.lastOne()
+//        if (last != null) return last
         return cnf.literalTimes()
     }
 }
