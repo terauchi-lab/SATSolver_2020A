@@ -10,4 +10,7 @@ $./gradlew wrapper
 ```
 
 ## 実行
+### DPLLアルゴリズム
 ``$./gradlew run --args="${filename}"``
+### CDCLアルゴリズム
+``$./gradlew run --args="${filename} cdcl"``
