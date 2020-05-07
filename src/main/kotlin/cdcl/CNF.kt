@@ -40,10 +40,6 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
             println("${it.number}:${it.bool}")
         }
         println("---------")
-        clauses.forEach {
-            println("${it.element} : ${it.now}")
-        }
-        println("---------")
     }
 
     fun oneLiteral(): CNF {
@@ -143,7 +139,6 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
     }
 
     fun backJump(): CNF {
-        printOut()
         if (choose.isEmpty()) choose = mutableListOf(literal.maxBy { it.level ?: 0 }?.number!!)
         val cnf = this.copy()
         val fact = choose.run {
@@ -216,7 +211,6 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
                 }) it.now.removeAll { true }
         }
 
-        cnf.printOut()
         level = changeLevel!! - 1
         return cnf
     }

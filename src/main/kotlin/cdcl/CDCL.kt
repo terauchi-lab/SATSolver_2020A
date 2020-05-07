@@ -30,8 +30,6 @@ class CDCL(private val cnf: CNF) {
 
     private fun chooseLiteral(cnf: CNF): Int? {
         level++
-//        val last = cnf.lastOne()
-//        if (last != null) return last
         return cnf.literalTimes()
     }
 }
