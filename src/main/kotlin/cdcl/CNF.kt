@@ -124,10 +124,6 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
         return map.maxBy { it.value }?.key
     }
 
-    fun lastOne(): Int? {
-        return clauses.find { it.now.size == 2 }?.now?.first()
-    }
-
     fun setLiteral(x: Int): CNF {
         val cnf = this.copy()
         if (x > 0) cnf.literal[x - 1].bool = true
@@ -227,19 +223,18 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
 
     @OptIn(ExperimentalStdlibApi::class)
     fun searchRoot(list: List<List<Int>>): Int {
-        val all = mutableListOf<Int>()
+        val all = mutableSetOf<Int>()
         val queue = ArrayDeque<Int>()
         list.forEach {
             queue.addAll(it)
         }
-        while (queue.isNotEmpty()) {
+        while ((queue.isNotEmpty())) {
             val x = queue.removeFirst()
-            if (all.contains(x)) return x
-            all.add(x)
-            literal[x - 1].factor.filter { !it.contains(0) }.forEach {
-                queue.addAll(it)
+            if (!all.contains(x)) {
+                literal[x - 1].factor.filter { !it.contains(0) }.forEach { queue.addAll(it) }
+                all.add(x)
             }
         }
-        return 0
+        return all.maxBy { all.count { i -> i == it } } ?: 0
     }
 }
