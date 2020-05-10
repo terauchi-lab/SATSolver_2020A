@@ -173,7 +173,7 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
             }
         } else {
             literal.filter { it.factor.any { e -> e.contains(root) } }.forEach {
-                it.factor.forEach { l ->
+                it.factor.filter { l -> l.contains(root) }.forEach { l ->
                     set.addAll(l)
                 }
             }

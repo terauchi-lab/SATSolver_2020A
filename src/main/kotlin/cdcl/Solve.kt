@@ -22,7 +22,7 @@ class Solve(private val file: File) {
         println(
             measureNanoTime {
                 CDCL(cnf).run()
-            }
+            } / 1e9
         )
     }
 }
