@@ -185,10 +185,14 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
             }
             l.min()
         }
+        if (changeLevel==null){
+            println("UNSAT")
+            exitProcess(0)
+        }
 
         if (list.isEmpty()) return this
         cnf.clauses.add(Clause(list.joinToString(" ").plus(" 0")))
-        literal.filter { it.level ?: 0 >= changeLevel!! || it.bool == null }.run {
+        literal.filter { it.level ?: 0 >= changeLevel || it.bool == null }.run {
             val sameLevel = mutableListOf<Int>()
             forEach {
                 sameLevel.add(it.number)
