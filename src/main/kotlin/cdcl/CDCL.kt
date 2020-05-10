@@ -1,8 +1,5 @@
 package cdcl
 
-@JvmField
-var level = 0
-
 class CDCL(private val cnf: CNF) {
     fun run() {
         val cnf = cnf.oneLiteral().pureLiteral()
@@ -29,7 +26,6 @@ class CDCL(private val cnf: CNF) {
     }
 
     private fun chooseLiteral(cnf: CNF): Int? {
-        level++
         return cnf.literalTimes()
     }
 }

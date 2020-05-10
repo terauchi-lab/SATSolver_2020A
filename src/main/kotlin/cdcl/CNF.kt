@@ -47,6 +47,10 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
         println("---------")
     }
 
+    private fun getLevel(): Int {
+        return literal.count { it.factor.contains(listOf(0)) }
+    }
+
     fun oneLiteral(): CNF {
         val cnf = this.copy()
         val c = cnf.clauses.filter { it.now.size == 1 }
@@ -77,7 +81,7 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
                 }
                 if (i > 0) cnf.literal[i - 1].bool = true
                 if (i < 0) cnf.literal[abs(i) - 1].bool = false
-                cnf.literal[abs(i) - 1].level = level
+                cnf.literal[abs(i) - 1].level = cnf.getLevel()
             }
             return cnf.oneLiteral()
         }
@@ -102,13 +106,13 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
                     it.now.removeAll { true }
                 }
                 cnf.literal[t.first - 1].bool = t.second
-                cnf.literal[t.first - 1].level = level
+                cnf.literal[t.first - 1].level = cnf.getLevel()
             }
             if (this.isNotEmpty()) return cnf.pureLiteral()
         }
         l.filter { !it.second && !it.third && literal[it.first - 1].bool == null }.forEach {
             cnf.literal[it.first - 1].bool = true
-            cnf.literal[it.first - 1].level = level
+            cnf.literal[it.first - 1].level = cnf.getLevel()
         }
 
         return cnf
@@ -130,7 +134,7 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
         if (x > 0) cnf.literal[x - 1].bool = true
         else cnf.literal[abs(x) - 1].bool = false
         cnf.literal[abs(x) - 1].factor.add(listOf(0))
-        cnf.literal[abs(x) - 1].level = level
+        cnf.literal[abs(x) - 1].level = cnf.getLevel()
         cnf.choose = mutableListOf(abs(x))
 
         cnf.clauses.filter { it.now.contains(x) }.forEach {
@@ -155,27 +159,11 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
             l
         }
         val root = searchRoot(fact)
-        var changeLevel =
-            if (root != 0) literal[root - 1].level
-            else fact.run {
-                val l = mutableListOf<Int>()
-                forEach {
-                    l.addAll(it)
-                }
-                l.minBy { literal[it - 1].level!! }?.let { literal[it - 1].level }
-            }
         val list = mutableListOf<Int>()
         val set = mutableSetOf<Int>()
         if (fact.size != fact.toSet().size) {
             fact.forEach {
                 if (fact.count { i -> i == it } > 1) set.addAll(it)
-            }
-            changeLevel = set.run {
-                val l = mutableListOf<Int>()
-                forEach {
-                    l.add(literal[it - 1].level!!)
-                }
-                l.min()
             }
         } else {
             literal.filter { it.factor.any { e -> e.contains(root) } }.forEach {
@@ -189,6 +177,13 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
                 if (literal[it - 1].bool!!) -it
                 else it
             )
+        }
+        val changeLevel = set.run {
+            val l = mutableListOf<Int>()
+            forEach {
+                l.add(literal[it - 1].level!!)
+            }
+            l.min()
         }
 
         if (list.isEmpty()) return this
@@ -217,7 +212,6 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
                 }) it.now.removeAll { true }
         }
 
-        level = changeLevel!! - 1
         printOut()
         return cnf
     }
@@ -247,17 +241,6 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
                 all.add(x)
             }
         }
-//        if (queue.isEmpty()) {
-//            println("UNSAT")
-//            exitProcess(0)
-//        }
-//        while ((queue.isNotEmpty())) {
-//            val x = queue.removeFirst()
-//            if (!all.contains(x)) {
-//                literal[x - 1].factor.filter { !it.contains(0) }.forEach { queue.addAll(it) }
-//                all.add(x)
-//            }
-//        }
         return all.maxBy { all.count { i -> i == it } } ?: 0
     }
 }
