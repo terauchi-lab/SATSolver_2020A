@@ -2,6 +2,7 @@ package cdcl
 
 import kotlin.collections.ArrayDeque
 import kotlin.math.abs
+import kotlin.system.exitProcess
 
 class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val literal: MutableList<Literal>) {
     private var choose = mutableListOf<Int>()
@@ -38,6 +39,10 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
     fun printOut() {
         literal.sortedBy { it.number }.forEach {
             println("${it.number}:${it.bool}")
+        }
+        println("---------")
+        clauses.forEach {
+            println("${it.element}:${it.now}")
         }
         println("---------")
     }
@@ -139,6 +144,7 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
     }
 
     fun backJump(): CNF {
+        printOut()
         if (choose.isEmpty()) choose = mutableListOf(literal.maxBy { it.level ?: 0 }?.number!!)
         val cnf = this.copy()
         val fact = choose.run {
@@ -212,6 +218,7 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
         }
 
         level = changeLevel!! - 1
+        printOut()
         return cnf
     }
 
@@ -222,13 +229,35 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
         list.forEach {
             queue.addAll(it)
         }
-        while ((queue.isNotEmpty())) {
+        while (queue.isNotEmpty()) {
             val x = queue.removeFirst()
-            if (!all.contains(x)) {
+            if (all.contains(x)) {
+                if (literal.filter { it.factor.any { e -> e.contains(x) } }.run {
+                        val set = mutableSetOf<Int>()
+                        forEach {
+                            it.factor.filter { l -> l.contains(x) }.forEach { l ->
+                                set.addAll(l)
+                            }
+                        }
+                        set.any { literal[it - 1].factor.contains(listOf(0)) }
+                    })
+                    return x
+            } else {
                 literal[x - 1].factor.filter { !it.contains(0) }.forEach { queue.addAll(it) }
                 all.add(x)
             }
         }
+//        if (queue.isEmpty()) {
+//            println("UNSAT")
+//            exitProcess(0)
+//        }
+//        while ((queue.isNotEmpty())) {
+//            val x = queue.removeFirst()
+//            if (!all.contains(x)) {
+//                literal[x - 1].factor.filter { !it.contains(0) }.forEach { queue.addAll(it) }
+//                all.add(x)
+//            }
+//        }
         return all.maxBy { all.count { i -> i == it } } ?: 0
     }
 }
