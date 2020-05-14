@@ -126,7 +126,14 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
                     map[i] = map[i]?.plus(1) ?: 0
             }
         }
-        return map.maxBy { it.value }?.key
+        return map.maxBy { it.value }?.key?.let {
+            clauses.filter { c -> c.now.size == 2 && c.now.contains(it) }.run {
+                if (isEmpty()) return it
+                val list = first().now.toMutableList()
+                list.remove(it)
+                list.first()
+            }
+        }
     }
 
     fun setLiteral(x: Int): CNF {
@@ -148,7 +155,6 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
     }
 
     fun backJump(): CNF {
-        printOut()
         if (choose.isEmpty()) choose = mutableListOf(literal.maxBy { it.level ?: 0 }?.number!!)
         val cnf = this.copy()
         val fact = choose.run {
@@ -185,7 +191,7 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
             }
             l.min()
         }
-        if (changeLevel==null){
+        if (changeLevel == null) {
             println("UNSAT")
             exitProcess(0)
         }
@@ -216,13 +222,12 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
                 }) it.now.removeAll { true }
         }
 
-        printOut()
         return cnf
     }
 
     @OptIn(ExperimentalStdlibApi::class)
     fun searchRoot(list: List<List<Int>>): Int {
-        val all = mutableSetOf<Int>()
+        val all = mutableListOf<Int>()
         val queue = ArrayDeque<Int>()
         list.forEach {
             queue.addAll(it)
@@ -241,7 +246,10 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
                     })
                     return x
             } else {
-                literal[x - 1].factor.filter { !it.contains(0) }.forEach { queue.addAll(it) }
+                literal[x - 1].factor.filter { !it.contains(0) }.forEach {
+                    queue.addAll(it)
+                    all.addAll(it)
+                }
                 all.add(x)
             }
         }
