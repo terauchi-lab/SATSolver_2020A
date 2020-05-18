@@ -41,10 +41,6 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
             println("${it.number}:${it.bool}")
         }
         println("---------")
-        clauses.forEach {
-            println("${it.element}:${it.now}")
-        }
-        println("---------")
     }
 
     private fun getLevel(): Int {
