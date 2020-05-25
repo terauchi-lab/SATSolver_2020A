@@ -10,22 +10,24 @@ class CDCL(private val cnf: CNF) {
         cdcl(cnf)
     }
 
-    private fun cdcl(cnf: CNF) {
-        if (finish) return
-        val lite = chooseLiteral(cnf)
-        val c = if (lite != null) cnf.setLiteral(lite).oneLiteral().pureLiteral() else cnf
-        if (finish) return
-        when {
-            c.check() -> {
-                c.printOut()
-                println("SAT")
-                return
-            }
-            c.literal.any { it.bool == null } -> {
-                cdcl(c)
-            }
-            else -> {
-                cdcl(c.backJump().oneLiteral().pureLiteral())
+    private fun cdcl(c: CNF) {
+        var cnf = c
+        while (true) {
+            if (finish) return
+            val lite = chooseLiteral(cnf)
+            if (lite != null) cnf.setLiteral(lite).oneLiteral().pureLiteral()
+            if (finish) return
+            when {
+                cnf.check() -> {
+                    c.printOut()
+                    println("SAT")
+                    return
+                }
+                cnf.literal.any { it.bool == null } -> {
+                }
+                else -> {
+                    cnf = c.backJump().oneLiteral().pureLiteral()
+                }
             }
         }
     }
