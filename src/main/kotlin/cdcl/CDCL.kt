@@ -1,5 +1,8 @@
 package cdcl
 
+@JvmField
+var finish = false
+
 class CDCL(private val cnf: CNF) {
     fun run() {
         val cnf = cnf.oneLiteral().pureLiteral()
@@ -8,8 +11,10 @@ class CDCL(private val cnf: CNF) {
     }
 
     private fun cdcl(cnf: CNF) {
+        if (finish) return
         val lite = chooseLiteral(cnf)
         val c = if (lite != null) cnf.setLiteral(lite).oneLiteral().pureLiteral() else cnf
+        if (finish) return
         when {
             c.check() -> {
                 c.printOut()
@@ -17,7 +22,7 @@ class CDCL(private val cnf: CNF) {
                 return
             }
             c.literal.any { it.bool == null } -> {
-                cdcl(c.copy())
+                cdcl(c)
             }
             else -> {
                 cdcl(c.backJump().oneLiteral().pureLiteral())
