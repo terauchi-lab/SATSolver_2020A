@@ -39,6 +39,7 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
     }
 
     fun oneLiteral():CNF {
+        if (finish) return this
         val c = clauses.filter { it.now.size == 1 }
         val v = c.run {
             val set = mutableSetOf<Int>()
