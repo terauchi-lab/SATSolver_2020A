@@ -5,6 +5,7 @@ import kotlin.math.abs
 
 class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val literal: MutableList<Literal>) {
     private var choose = mutableListOf<Int>()
+    private var conflict = mutableListOf<Int>()
 
     fun check(): Boolean {
         clauses.forEach { o ->
@@ -21,6 +22,7 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
                     val l = maxBy { literal[abs(it) - 1].level ?: -1 }
                     filter { literal[abs(it) - 1].level == literal[abs(l!!) - 1].level }.map { abs(it) }
                 }.toMutableList()
+                conflict = o.element.toMutableList()
                 return false
             }
         }
@@ -38,7 +40,7 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
         return literal.count { it.factor.contains(listOf(0)) }
     }
 
-    fun oneLiteral():CNF {
+    fun oneLiteral(): CNF {
         if (finish) return this
         val c = clauses.filter { it.now.size == 1 }
         val v = c.run {
@@ -51,12 +53,22 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
         if (v.isNotEmpty()) {
             v.forEach { i ->
                 c.filter { it.now.contains(i) }.forEach {
-                    val list = it.element.toMutableList()
-                    list.remove(i)
-                    literal[abs(i) - 1].factor.add(list.map { i -> abs(i) }.sorted())
+                    val list = it.element.map { e -> abs(e) }.sorted().toMutableList()
+                    list.remove(abs(i))
+                    literal[abs(i) - 1].factor.add(list)
+                    list.forEach { l ->
+                        literal[l - 1].edge.add(Pair(abs(i), it.element))
+                    }
                 }
                 if (literal[abs(i) - 1].bool == i <= 0) {
                     choose = mutableListOf(abs(i))
+                    conflict = c.filter { it.now.contains(i) }.run {
+                        val list = mutableSetOf<Int>()
+                        forEach { e ->
+                            list.addAll(e.element)
+                        }
+                        list.toMutableList()
+                    }
                     return backJump().oneLiteral()
                 }
 
@@ -199,6 +211,7 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
             literal[it - 1].bool = null
             literal[it - 1].factor.removeAll { true }
             literal[it - 1].level = null
+            literal[it - 1].edge.removeAll { true }
         }
         clauses.forEach {
             if (it.element.any { i ->
@@ -208,6 +221,13 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
         }
 
         return this
+    }
+
+    fun findUIP(): List<Int> {
+        val level = getLevel()
+        val decision = literal.find { it.level == level && it.factor.contains(listOf(0)) }!!.number
+
+        return listOf(0)
     }
 
     @OptIn(ExperimentalStdlibApi::class)
