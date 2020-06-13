@@ -1,11 +1,10 @@
 package cdcl
 
-import kotlin.collections.ArrayDeque
 import kotlin.math.abs
 
 class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val literal: MutableList<Literal>) {
     private var choose = mutableListOf<Int>()
-    private var conflict = mutableListOf<Int>()
+    private var conflict = mutableSetOf<Int>()
 
     fun check(): Boolean {
         clauses.forEach { o ->
@@ -22,7 +21,7 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
                     val l = maxBy { literal[abs(it) - 1].level ?: -1 }
                     filter { literal[abs(it) - 1].level == literal[abs(l!!) - 1].level }.map { abs(it) }
                 }.toMutableList()
-                conflict = o.element.toMutableList()
+                conflict = o.element.toMutableSet()
                 return false
             }
         }
@@ -67,7 +66,7 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
                         forEach { e ->
                             list.addAll(e.element)
                         }
-                        list.toMutableList()
+                        list
                     }
                     return backJump().oneLiteral()
                 }
@@ -153,39 +152,12 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
 
     fun backJump(): CNF {
         if (choose.isEmpty()) choose = mutableListOf(literal.maxBy { it.level ?: 0 }?.number!!)
-        val fact = choose.run {
-            val l = mutableListOf<List<Int>>()
-            forEach {
-                l.addAll(literal[it - 1].factor.filter { i -> !i.contains(0) })
-            }
-            l
-        }
-        val root = searchRoot(fact)
-        val list = mutableListOf<Int>()
-        val set = mutableSetOf<Int>()
-        if (fact.size != fact.toSet().size) {
-            fact.forEach {
-                if (fact.count { i -> i == it } > 1) set.addAll(it)
-            }
-        } else {
-            literal.filter { it.factor.any { e -> e.contains(root) } }.forEach {
-                it.factor.filter { l -> l.contains(root) }.forEach { l ->
-                    set.addAll(l)
-                }
-            }
-        }
-        set.filter { it != 0 }.forEach {
-            list.add(
-                if (literal[it - 1].bool!!) -it
-                else it
-            )
-        }
-        val changeLevel = set.run {
-            val l = mutableListOf<Int>()
-            forEach {
-                l.add(literal[it - 1].level!!)
-            }
-            l.min()
+        findUIP()
+        val list = conflict.toMutableList()
+        val changeLevel = list.run {
+            val levels = mutableListOf<Int>()
+            forEach { levels.add(literal[abs(it) - 1].level!!) }
+            levels.min()
         }
         if (changeLevel == null) {
             println("UNSAT")
@@ -223,41 +195,24 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
         return this
     }
 
-    fun findUIP(): List<Int> {
+    private fun findUIP() {
         val level = getLevel()
         val decision = literal.find { it.level == level && it.factor.contains(listOf(0)) }!!.number
-
-        return listOf(0)
-    }
-
-    @OptIn(ExperimentalStdlibApi::class)
-    fun searchRoot(list: List<List<Int>>): Int {
-        val all = mutableListOf<Int>()
-        val queue = ArrayDeque<Int>()
-        list.forEach {
-            queue.addAll(it)
-        }
-        while (queue.isNotEmpty()) {
-            val x = queue.removeFirst()
-            if (all.contains(x)) {
-                if (literal.filter { it.factor.any { e -> e.contains(x) } }.run {
-                        val set = mutableSetOf<Int>()
-                        forEach {
-                            it.factor.filter { l -> l.contains(x) }.forEach { l ->
-                                set.addAll(l)
-                            }
-                        }
-                        set.any { literal[it - 1].factor.contains(listOf(0)) }
-                    })
-                    return x
-            } else {
-                literal[x - 1].factor.filter { !it.contains(0) }.forEach {
-                    queue.addAll(it)
-                    all.addAll(it)
-                }
-                all.add(x)
+        val visit = conflict.map { abs(it) }.toMutableSet()
+        while (true) {
+            val set = literal.filter { conflict.map { i -> abs(i) }.contains(it.number) }
+            val next =
+                literal.find {
+                    set.any { l -> l.factor.any { e -> e.contains(it.number) } }
+                            && it.level == level && !visit.contains(it.number)
+                } ?: break
+            next.edge.find { conflict.map { i -> abs(i) }.contains(it.first) }?.second?.forEach {
+                if (conflict.contains(-it)) conflict.remove(-it)
+                else conflict.add(it)
             }
+            if (conflict.count { literal[abs(it) - 1].level == level } == 1) return
+            visit.add(next.number)
+            if (next.number == decision) return
         }
-        return all.maxBy { all.count { i -> i == it } } ?: 0
     }
 }
