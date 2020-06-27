@@ -3,11 +3,15 @@ package cdcl
 @JvmField
 var finish = false
 
+@JvmField
+var cnt = 0
+
 class CDCL(private val cnf: CNF) {
     fun run() {
         val cnf = cnf.oneLiteral().pureLiteral()
 
         cdcl(cnf)
+        println(cnt)
     }
 
     private fun cdcl(c: CNF) {
