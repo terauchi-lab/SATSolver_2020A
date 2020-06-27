@@ -68,11 +68,13 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
                 }
                 if (literal[abs(i) - 1].bool == i <= 0) {
                     choose = mutableListOf(abs(i))
-                    conflict = c.filter { it.now.contains(i) }.run {
+                    conflict = c.filter { it.now.contains(i) || it.now.contains(-i) }.run {
                         val list = mutableSetOf<Int>()
                         forEach { e ->
                             list.addAll(e.element)
                         }
+                        list.remove(i)
+                        list.remove(-i)
                         list
                     }
                     return backJump().oneLiteral()
@@ -198,10 +200,16 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
 
     private fun findUIP() {
         val level = getLevel()
-        val decision = literal.find { it.level == level && it.factor.contains(listOf(0)) }!!.number
+        val decision = literal.find { it.level == level && it.factor.contains(listOf(0)) }?.number
+        if (decision == null) onFailed()
         val visit = conflict.map { abs(it) }.toMutableSet()
         val set = literal.filter { conflict.map { i -> abs(i) }.contains(it.number) }.toMutableSet()
         while (true) {
+            if (conflict.count { literal[abs(it) - 1].level == level } == 1) {
+                if (conflict.find { literal[abs(it) - 1].level == level } ?: 0 == choose.first())
+                    onFailed()
+                return
+            }
             val edges =
                 set.find {
                     it.factor.any { e ->
@@ -217,7 +225,6 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
                 if (conflict.contains(-it)) conflict.remove(-it)
                 else conflict.add(it)
             }
-            if (conflict.count { literal[abs(it) - 1].level == level } == 1) return
             visit.add(next.first)
             set.addAll(literal.filter { conflict.map { i -> abs(i) }.contains(it.number) })
             if (next.first == decision) return

@@ -27,7 +27,7 @@ class CDCL(private val cnf: CNF) {
                 }
                 else -> {
                     cnf = c.backJump().oneLiteral()
-                    if (cnf.check()?.not() == true) cnf.onFailed()
+                    if (cnf.check() == false) cnf.onFailed()
                     else cnf.pureLiteral()
                 }
             }
