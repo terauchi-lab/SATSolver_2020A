@@ -6,7 +6,8 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
     private var choose = mutableListOf<Int>()
     private var conflict = mutableSetOf<Int>()
 
-    fun check(): Boolean {
+    fun check(): Boolean? {
+        var isNull = false
         clauses.forEach { o ->
             val v = mutableListOf<Boolean?>()
             o.element.forEach { i ->
@@ -15,7 +16,7 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
                     else literal[abs(i) - 1].bool?.not()
                 )
             }
-            if (v.contains(null)) return false
+            if (v.contains(null)) isNull = true
             if (!v.contains(true)) {
                 choose = o.element.run {
                     val l = maxBy { literal[abs(it) - 1].level ?: -1 }
@@ -25,6 +26,7 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
                 return false
             }
         }
+        if (isNull) return null
         return true
     }
 
@@ -33,6 +35,11 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
             println("${it.number}:${it.bool}")
         }
         println("---------")
+    }
+
+    fun onFailed() {
+        println("UNSAT")
+        finish = true
     }
 
     private fun getLevel(): Int {
@@ -56,7 +63,7 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
                     list.remove(abs(i))
                     literal[abs(i) - 1].factor.add(list)
                     list.forEach { l ->
-                        literal[l - 1].edge.add(Pair(abs(i), it.element))
+                        literal[abs(i) - 1].edge.add(Pair(abs(l), it.element))
                     }
                 }
                 if (literal[abs(i) - 1].bool == i <= 0) {
@@ -123,14 +130,7 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
                     map[i] = map[i]?.plus(1) ?: 0
             }
         }
-        return map.maxBy { it.value }?.key?.let {
-            clauses.filter { c -> c.now.size == 2 && c.now.contains(it) }.run {
-                if (isEmpty()) return it
-                val list = first().now.toMutableList()
-                list.remove(it)
-                list.first()
-            }
-        }
+        return map.maxBy { it.value }?.key
     }
 
     fun setLiteral(x: Int): CNF {
@@ -160,8 +160,7 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
             levels.min()
         }
         if (changeLevel == null) {
-            println("UNSAT")
-            finish = true
+            onFailed()
             return this
         }
 
@@ -180,10 +179,12 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
             }
             sameLevel
         }.forEach {
-            literal[it - 1].bool = null
-            literal[it - 1].factor.removeAll { true }
-            literal[it - 1].level = null
-            literal[it - 1].edge.removeAll { true }
+            literal[it - 1].run {
+                bool = null
+                factor.removeAll { true }
+                level = null
+                edge.removeAll { true }
+            }
         }
         clauses.forEach {
             if (it.element.any { i ->
@@ -199,20 +200,27 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
         val level = getLevel()
         val decision = literal.find { it.level == level && it.factor.contains(listOf(0)) }!!.number
         val visit = conflict.map { abs(it) }.toMutableSet()
+        val set = literal.filter { conflict.map { i -> abs(i) }.contains(it.number) }.toMutableSet()
         while (true) {
-            val set = literal.filter { conflict.map { i -> abs(i) }.contains(it.number) }
+            val edges =
+                set.find {
+                    it.factor.any { e ->
+                        e.any { l ->
+                            (if (l != 0) literal[abs(l) - 1].level == level else false)
+                                    && visit.contains(abs(l)).not()
+                        }
+                    }
+                }?.edge ?: break
             val next =
-                literal.find {
-                    set.any { l -> l.factor.any { e -> e.contains(it.number) } }
-                            && it.level == level && !visit.contains(it.number)
-                } ?: break
-            next.edge.find { conflict.map { i -> abs(i) }.contains(it.first) }?.second?.forEach {
+                edges.find { literal[it.first - 1].level == level && visit.contains(it.first).not() } ?: break
+            next.second.forEach {
                 if (conflict.contains(-it)) conflict.remove(-it)
                 else conflict.add(it)
             }
             if (conflict.count { literal[abs(it) - 1].level == level } == 1) return
-            visit.add(next.number)
-            if (next.number == decision) return
+            visit.add(next.first)
+            set.addAll(literal.filter { conflict.map { i -> abs(i) }.contains(it.number) })
+            if (next.first == decision) return
         }
     }
 }
