@@ -18,7 +18,7 @@ class CDCL(private val cnf: CNF) {
             if (lite != null) cnf.setLiteral(lite).oneLiteral().pureLiteral()
             if (finish) return
             when {
-                cnf.check() ?: false -> {
+                cnf.check() -> {
                     c.printOut()
                     println("SAT")
                     return
@@ -26,9 +26,7 @@ class CDCL(private val cnf: CNF) {
                 cnf.literal.any { it.bool == null } -> {
                 }
                 else -> {
-                    cnf = c.backJump().oneLiteral()
-                    if (cnf.check() == false) cnf.onFailed()
-                    else cnf.pureLiteral()
+                    cnf = c.backJump().oneLiteral().pureLiteral()
                 }
             }
         }

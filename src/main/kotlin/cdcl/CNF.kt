@@ -6,8 +6,7 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
     private var choose = mutableListOf<Int>()
     private var conflict = mutableSetOf<Int>()
 
-    fun check(): Boolean? {
-        var isNull = false
+    fun check(): Boolean {
         clauses.forEach { o ->
             val v = mutableListOf<Boolean?>()
             o.element.forEach { i ->
@@ -16,7 +15,7 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
                     else literal[abs(i) - 1].bool?.not()
                 )
             }
-            if (v.contains(null)) isNull = true
+            if (v.contains(null)) return false
             if (!v.contains(true)) {
                 choose = o.element.run {
                     val l = maxBy { literal[abs(it) - 1].level ?: -1 }
@@ -26,7 +25,6 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
                 return false
             }
         }
-        if (isNull) return null
         return true
     }
 
