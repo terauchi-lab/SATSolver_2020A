@@ -37,7 +37,7 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
 
     private fun onFailed() {
         println("UNSAT")
-        finish = true
+        CDCL.finish = true
     }
 
     private fun getLevel(): Int {
@@ -45,7 +45,7 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
     }
 
     fun oneLiteral(): CNF {
-        if (finish) return this
+        if (CDCL.finish) return this
         val c = clauses.filter { it.now.size == 1 }
         val v = c.run {
             val set = mutableSetOf<Int>()
@@ -192,7 +192,7 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
                     else literal[abs(i) - 1].bool?.not() ?: false
                 }) it.now.removeAll { true }
         }
-        cnt++
+        CDCL.cnt++
         return this
     }
 
@@ -266,8 +266,7 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
             l.min()
         }
         if (changeLevel == null) {
-            println("UNSAT")
-            finish = true
+            onFailed()
             return this
         }
 
@@ -296,7 +295,7 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
                     else literal[abs(i) - 1].bool?.not() ?: false
                 }) it.now.removeAll { true }
         }
-        cnt++
+        CDCL.cnt++
         return this
     }
 

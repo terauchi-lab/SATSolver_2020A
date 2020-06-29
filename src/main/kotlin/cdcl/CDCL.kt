@@ -1,12 +1,11 @@
 package cdcl
 
-@JvmField
-var finish = false
-
-@JvmField
-var cnt = 0
-
 class CDCL(private val cnf: CNF) {
+    companion object {
+        var finish = false
+        var cnt = 0
+    }
+
     fun run() {
         val cnf = cnf.oneLiteral().pureLiteral()
 
