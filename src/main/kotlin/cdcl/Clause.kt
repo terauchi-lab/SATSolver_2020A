@@ -5,7 +5,7 @@ class Clause(private var base: String) {
     val now: MutableSet<Int> by lazy { element.toMutableSet() }
 
     init {
-        element.addAll(base.split(" ").map { it.toInt() }.dropLast(1).sorted())
+        element.addAll(base.split(" ").filter { it != "" }.map { it.toInt() }.dropLast(1).sorted())
         base = element.joinToString(" ")
     }
 }

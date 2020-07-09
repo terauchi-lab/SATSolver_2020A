@@ -6,7 +6,7 @@ import kotlin.system.measureNanoTime
 class Solve(private val file: File) {
     fun run() {
         println("Solving by CDCL")
-        val texts = file.readLines()
+        val texts = file.readLines().dropWhile { it.first() == 'c' }
 
         val size = texts[0].split(' ')[2].toInt()
         val clause = mutableSetOf<Clause>()
