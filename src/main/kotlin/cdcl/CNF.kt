@@ -5,6 +5,7 @@ import kotlin.math.abs
 class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val literal: MutableList<Literal>) {
     private var choose = mutableListOf<Int>()
     private var conflict = mutableSetOf<Int>()
+    private val count = mutableListOf<Pair<Int, Int>>()
 
     fun check(): Boolean {
         clauses.forEach { o ->
@@ -75,7 +76,7 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
                         list.remove(-i)
                         list
                     }
-                    return backJump().oneLiteral()
+                    return dummyJump().oneLiteral()
                 }
 
                 clauses.filter { it.now.contains(i) }.forEach {
@@ -132,6 +133,33 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
         }
         return map.maxBy { it.value }?.key
     }
+
+    fun initVSIDS() {
+        repeat(size) { count.add(Pair(0, 0)) }
+        clauses.forEach { o ->
+            o.element.forEach {
+                if (it < 0) count[abs(it) - 1] = count[abs(it) - 1].run { Pair(first, second + 1) }
+                else count[it - 1] = count[it - 1].run { Pair(first + 1, second) }
+            }
+        }
+    }
+
+    fun vsids(list: List<Int>) {
+        for (i in count.indices) {
+            count[i] = count[i].run { Pair(first / 2, second / 2) }
+        }
+        list.forEach {
+            if (it < 0) count[abs(it) - 1] = count[abs(it) - 1].run { Pair(first, second + 1) }
+            else count[it - 1] = count[it - 1].run { Pair(first + 1, second) }
+        }
+    }
+
+    fun getvsids(): Int? =
+        count.maxBy { maxOf(it.first, it.second) }?.run {
+            val id = count.indexOf(this)
+            if (first > second) id
+            else -id
+        }
 
     fun setLiteral(x: Int): CNF {
         if (x > 0) literal[x - 1].bool = true
@@ -295,6 +323,7 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
                     else literal[abs(i) - 1].bool?.not() ?: false
                 }) it.now.removeAll { true }
         }
+        vsids(list)
         CDCL.cnt++
         return this
     }

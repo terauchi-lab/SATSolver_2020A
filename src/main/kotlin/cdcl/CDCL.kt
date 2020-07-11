@@ -8,6 +8,7 @@ class CDCL(private val cnf: CNF) {
 
     fun run() {
         val cnf = cnf.oneLiteral().pureLiteral()
+        cnf.initVSIDS()
 
         cdcl(cnf)
         println(cnt)
@@ -29,13 +30,13 @@ class CDCL(private val cnf: CNF) {
                 cnf.literal.any { it.bool == null } -> {
                 }
                 else -> {
-                    cnf = c.backJump().oneLiteral().pureLiteral()
+                    cnf = c.dummyJump().oneLiteral().pureLiteral()
                 }
             }
         }
     }
 
     private fun chooseLiteral(cnf: CNF): Int? {
-        return cnf.literalTimes()
+        return cnf.getvsids()
     }
 }
