@@ -27,8 +27,7 @@ class CDCL(private val cnf: CNF) {
                     println("SAT")
                     return
                 }
-                cnf.literal.any { it.bool == null } -> {
-                }
+                cnf.literal.any { it.bool == null } -> Unit
                 else -> {
                     cnf = c.dummyJump().oneLiteral().pureLiteral()
                 }

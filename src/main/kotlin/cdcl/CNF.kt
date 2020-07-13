@@ -5,7 +5,7 @@ import kotlin.math.abs
 class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val literal: MutableList<Literal>) {
     private var choose = mutableListOf<Int>()
     private var conflict = mutableSetOf<Int>()
-    private val count = mutableListOf<Pair<Int, Int>>()
+    private val count = mutableListOf<Triple<Int, Int, Int>>()
 
     fun check(): Boolean {
         clauses.forEach { o ->
@@ -135,28 +135,28 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
     }
 
     fun initVSIDS() {
-        repeat(size) { count.add(Pair(0, 0)) }
+        repeat(size) { count.add(Triple(0, 0, it)) }
         clauses.forEach { o ->
             o.element.forEach {
-                if (it < 0) count[abs(it) - 1] = count[abs(it) - 1].run { Pair(first, second + 1) }
-                else count[it - 1] = count[it - 1].run { Pair(first + 1, second) }
+                if (it < 0) count[abs(it) - 1] = count[abs(it) - 1].run { Triple(first, second + 1, third) }
+                else count[it - 1] = count[it - 1].run { Triple(first + 1, second, third) }
             }
         }
     }
 
     fun vsids(list: List<Int>) {
         for (i in count.indices) {
-            count[i] = count[i].run { Pair(first / 2, second / 2) }
+            count[i] = count[i].run { Triple(first / 2, second / 2, third) }
         }
         list.forEach {
-            if (it < 0) count[abs(it) - 1] = count[abs(it) - 1].run { Pair(first, second + 1) }
-            else count[it - 1] = count[it - 1].run { Pair(first + 1, second) }
+            if (it < 0) count[abs(it) - 1] = count[abs(it) - 1].run { Triple(first, second + 1, third) }
+            else count[it - 1] = count[it - 1].run { Triple(first + 1, second, third) }
         }
     }
 
     fun getvsids(): Int? =
-        count.maxBy { maxOf(it.first, it.second) }?.run {
-            val id = count.indexOf(this)
+        count.filter { literal[it.third].bool == null }.maxBy { maxOf(it.first, it.second) }?.run {
+            val id = third + 1
             if (first > second) id
             else -id
         }
