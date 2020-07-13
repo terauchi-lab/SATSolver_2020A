@@ -36,6 +36,6 @@ class CDCL(private val cnf: CNF) {
     }
 
     private fun chooseLiteral(cnf: CNF): Int? {
-        return cnf.getvsids()
+        return cnf.getVSIDS()
     }
 }

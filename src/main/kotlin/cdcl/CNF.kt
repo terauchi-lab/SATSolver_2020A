@@ -144,7 +144,7 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
         }
     }
 
-    fun vsids(list: List<Int>) {
+    private fun vsids(list: List<Int>) {
         for (i in count.indices) {
             count[i] = count[i].run { Triple(first / 2, second / 2, third) }
         }
@@ -154,7 +154,7 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
         }
     }
 
-    fun getvsids(): Int? =
+    fun getVSIDS(): Int? =
         count.filter { literal[it.third].bool == null }.maxBy { maxOf(it.first, it.second) }?.run {
             val id = third + 1
             if (first > second) id
@@ -293,7 +293,7 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
             }
             l.min()
         }
-        if (changeLevel == null) {
+        if (changeLevel == null || changeLevel == 0) {
             onFailed()
             return this
         }
