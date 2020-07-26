@@ -79,16 +79,16 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
                 }
                 if (literal[abs(i) - 1].bool == i <= 0) {
                     choose = mutableListOf(abs(i))
-                    conflict = c.filter { it.element.contains(i) || it.element.contains(-i) }.run {
+                    conflict = literal[abs(i) - 1].factor.run {
                         val list = mutableSetOf<Int>()
                         forEach { e ->
-                            list.addAll(e.element)
+                            list.addAll(e)
                         }
                         list.remove(i)
                         list.remove(-i)
                         list
                     }
-                    return backJump().oneLiteral()
+                    return dummyJump().oneLiteral()
                 }
 
                 clauses.filter { it.now.contains(i) }.forEach {
@@ -244,7 +244,6 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
         val level = getLevel()
         val decision = literal.find { it.level == level && it.factor.contains(listOf(0)) }?.number
         if (decision == null) onFailed()
-        //val visit = conflict.map { abs(it) }.toMutableSet()
         val set = literal.filter { conflict.map { i -> abs(i) }.contains(it.number) }.toMutableSet()
         val use = mutableSetOf<Int>()
         while (true) {
@@ -271,7 +270,6 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
                 if (conflict.contains(-it)) conflict.remove(-it)
                 else conflict.add(it)
             }
-            //visit.add(next.first)
             set.addAll(literal.filter { conflict.map { i -> abs(i) }.contains(it.number) })
             if (next.first == decision) return
         }
