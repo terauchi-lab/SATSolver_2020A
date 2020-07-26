@@ -221,6 +221,7 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
                 }) it.now.removeAll { true }
         }
         CDCL.cnt++
+        vsids(list)
         return this
     }
 
@@ -287,13 +288,14 @@ class CNF(private val size: Int, private val clauses: MutableSet<Clause>, val li
             )
         }
         val changeLevel = set.run {
-            val l = mutableListOf<Int>()
+            val l = mutableSetOf<Int>()
             forEach {
                 l.add(literal[it - 1].level!!)
             }
+            l.remove(0)
             l.min()
         }
-        if (changeLevel == null || changeLevel == 0) {
+        if (changeLevel == null) {
             onFailed()
             return this
         }
