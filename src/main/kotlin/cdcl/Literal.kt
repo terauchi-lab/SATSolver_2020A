@@ -5,5 +5,6 @@ data class Literal(
     var bool: Boolean?,
     var level: Int?,
     val factor: MutableList<List<Int>>,
-    val edge: MutableList<Pair<Int, List<Int>>>
+    val edge: MutableList<Pair<Int, List<Int>>>,
+    var deep: Int?
 )
