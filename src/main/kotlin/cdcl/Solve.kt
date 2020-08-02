@@ -21,9 +21,11 @@ class Solve(private val file: File) {
         val cnf = CNF(size, clause, literal)
 
         println(
+            "run: ${
             measureNanoTime {
                 CDCL(cnf).run()
             } / 1e9
+            }"
         )
     }
 }

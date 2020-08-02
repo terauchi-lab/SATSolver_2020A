@@ -11,7 +11,7 @@ class CDCL(private val cnf: CNF) {
         cnf.initVSIDS()
 
         cdcl(cnf)
-        println(cnt)
+        println("conflicts: $cnt")
     }
 
     private fun cdcl(c: CNF) {
