@@ -4,6 +4,10 @@ import java.io.File
 import kotlin.system.measureNanoTime
 
 class Solve(private val file: File) {
+    companion object {
+        var cnt = 0
+    }
+
     fun run() {
         println("Solving by DPLL")
         val texts = file.readLines()
@@ -22,7 +26,10 @@ class Solve(private val file: File) {
 
         println(
             measureNanoTime {
-                println(dpll(cnf))
+                dpll(cnf).run {
+                    println("conflicts: $cnt")
+                    println(if (this) "SAT" else "UNSAT")
+                }
             } / 1e9
         )
     }
@@ -47,6 +54,7 @@ class Solve(private val file: File) {
             if (dpll(CNF(cnf.size, cnf.clauses, onTrue))) return true
             if (dpll(CNF(cnf.size, cnf.clauses, onFalse))) return true
         }
+        cnt++
         return false
     }
 }
